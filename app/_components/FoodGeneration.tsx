@@ -27,6 +27,35 @@ export const FoodGeneration = () => {
     setExtractedInfo([]);
 
     try {
+      const [imageResponse, extractResponse] = await Promise.all([
+        fetch("/api/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        }),
+        fetch("/api/extract", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        }),
+      ]);
+
+      const imageData = await imageResponse.json();
+      const extractData = await extractResponse.json();
+
+      if (imageData.url) {
+        setResultImage(imageData.url);
+      } else {
+        console.error("Image error:", imageData.error);
+      }
+
+      if (extractData.ingredients) {
+        setExtractedInfo(extractData.ingredients);
+      }
+
+      if (!imageData.url && !extractData.ingredients) {
+        throw new Error("Both services failed");
+      }
     } catch (error) {
       console.error("Error:", error);
       setError("Something went wrong. Please try again.");

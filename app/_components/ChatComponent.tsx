@@ -53,16 +53,20 @@ export const ChatComponent = () => {
     setIsLoading(true);
 
     try {
-      // const response = await openai.chat.completions.create({
-      //   model: "gpt-4.1-mini","/api/chat"
-      //   messages: updatedMessages.map((msg) => ({
-      //     role: msg.role,
-      //     content: msg.content,
-      //   })),
-      // });
-      // const assistantMessage = response.choices[0]?.message?.content || "Sorry, I didn't get that.";
-      // setMessages((prev) => [...prev, { role: "assistant", content: assistantMessage }]);
-      const response = await fetch("/api/chat");
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ prompt: userMessage }),
+      });
+      const result = await response.json();
+
+      if (result.output) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: result.output },
+        ]);
+      } else {
+        throw new Error(result.error || "No response");
+      }
     } catch (err) {
       console.error("OpenAI API Error:", err);
       setMessages((prev) => [
